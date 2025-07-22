@@ -3,8 +3,6 @@ from pydantic import BaseModel
 from transformers import pipeline
 import torch
 
-print("Loading AI models... This may take a moment on first run.")
-
 try:
     summarizer = pipeline("summarization", model="t5-small")
     print("Summarization model loaded successfully.")
@@ -32,7 +30,7 @@ class ClassifyResponse(BaseModel):
 app = FastAPI(
     title="DocuIntel AI Service",
     description="Provides fast text summarization and flexible zero-shot classification.",
-    version="2.0.0" # Version bump!
+    version="1.0.2" 
 )
 
 @app.get("/")
