@@ -18,4 +18,7 @@ public class FileMetaData {
     private String summary;
     private String classification;
     private LocalDateTime uploadTimestamp;
+    @ManyToOne
+    @JoinColumn(name = "folder_id")
+    private Folder folder;
 } 

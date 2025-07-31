@@ -2,15 +2,29 @@ package com.docuintel.docuintel_core.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.MediaType;
+import org.springframework.web.reactive.function.client.WebClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 
+import org.springframework.http.HttpHeaders;
+
 @Configuration
 public class AwsConfig {
+
     @Bean
     public S3Client s3Client() {
         return S3Client.builder()
-                       .region(Region.AP_SOUTH_1) // Change to your AWS region if needed
+                       .region(Region.AP_SOUTH_1) 
                        .build();
+    }
+
+    @Bean
+    public WebClient webClient() {
+        return WebClient.builder()
+                .baseUrl("http://localhost:8000")
+                .defaultHeader(HttpHeaders.CONTENT_TYPE,
+                        MediaType.APPLICATION_JSON_VALUE)
+                .build();
     }
 } 

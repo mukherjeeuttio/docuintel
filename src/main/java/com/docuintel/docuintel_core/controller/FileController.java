@@ -44,7 +44,7 @@ public class FileController {
             FileMetaData savedMetadata = metaDataRepository.save(metadata);
 
             // 3. Trigger async AI processing
-            orchestrationService.processFile(savedMetadata.getId());
+            orchestrationService.processAndCategorizeFile(savedMetadata.getId());
 
             return ResponseEntity.ok(savedMetadata);
         } catch (IOException e) {
