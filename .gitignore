@@ -66,3 +66,4 @@ MANIFEST
 # Environment variables
 .env
 .env.*
+*.env

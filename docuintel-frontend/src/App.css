@@ -1,37 +1,247 @@
-.dashboard-container { display: flex; }
-.sidebar { width: 250px; height: 100vh; background-color: #e9ecef; padding: 1rem; border-right: 1px solid #dee2e6; }
-.main-content { flex: 1; padding: 2rem; }
+/* Modern Professional Styling for DocuIntel */
 
-.folder-list h3 { margin-top: 0; }
-.folder-list ul { list-style-type: none; padding: 0; }
-.folder-list li { padding: 0.75rem; border-radius: 5px; cursor: pointer; margin-bottom: 5px; }
-.folder-list li:hover { background-color: #ced4da; }
-.folder-list li.selected { background-color: #007bff; color: white; }
-
-.dropzone { border: 2px dashed #adb5bd; border-radius: 5px; padding: 2rem; text-align: center; background-color: #fff; cursor: pointer; margin-bottom: 2rem;}
-.dropzone.active { border-color: #007bff; }
-
-.file-list table { width: 100%; border-collapse: collapse; }
-.file-list th, .file-list td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #dee2e6; }
-.file-list th { background-color: #f8f9fa; }
-.file-list button { padding: 5px 10px; border: 1px solid #ced4da; border-radius: 3px; cursor: pointer; background-color: #fff; }
-.file-list button.delete { border-color: #dc3545; color: #dc3545; }
-
-.create-folder-form {
-  display: flex;
-  margin-top: 20px;
+/* Global styles */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  min-height: 100vh;
+  overflow-x: hidden;
 }
-.create-folder-form input {
-  flex-grow: 1;
-  border: 1px solid #ccc;
-  padding: 8px;
-  border-radius: 4px 0 0 4px;
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
 }
-.create-folder-form button {
-  border: 1px solid #007bff;
-  background-color: #007bff;
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* App Shell enhancements */
+.mantine-AppShell-main {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  overflow: hidden;
+}
+
+/* Header gradient animation */
+.mantine-AppShell-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.mantine-AppShell-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Navbar enhancements */
+.mantine-AppShell-navbar {
+  box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+  backdrop-filter: blur(10px);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Paper components with subtle shadows */
+.mantine-Paper-root {
+  transition: all 0.3s ease;
+}
+
+.mantine-Paper-root:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+/* Button enhancements */
+.mantine-Button-root {
+  transition: all 0.2s ease;
+}
+
+.mantine-Button-root:hover {
+  transform: translateY(-1px);
+}
+
+/* Dropzone enhancements */
+.mantine-Dropzone-root {
+  transition: all 0.3s ease;
+  border-radius: 16px;
+}
+
+.mantine-Dropzone-root:hover {
+  transform: scale(1.02);
+}
+
+/* Table enhancements */
+.mantine-Table-root {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.mantine-Table-th {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  font-weight: 600;
+  color: #1e293b;
+}
+
+/* Badge enhancements */
+.mantine-Badge-root {
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+/* Text enhancements */
+.mantine-Text-root {
+  line-height: 1.6;
+}
+
+/* Loading states */
+.mantine-LoadingOverlay-root {
+  backdrop-filter: blur(4px);
+}
+
+/* Compact layout styles */
+.compact-layout {
+  height: calc(100vh - 140px);
+  overflow: hidden;
+}
+
+.upload-section {
+  flex: 1;
+  max-width: 400px;
+  min-height: 200px;
+  height: calc(100vh - 180px);
+  overflow-y: auto;
+}
+
+.content-section {
+  flex: 2;
+  overflow: hidden;
+  height: calc(100vh - 180px);
+}
+
+.file-list-container {
+  height: calc(100vh - 280px);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Folder count styling */
+.folder-count {
+  font-size: 12px;
+  color: var(--mantine-color-dimmed);
+}
+
+/* Tooltip enhancements */
+.mantine-Tooltip-tooltip {
+  background: rgba(0, 0, 0, 0.9);
   color: white;
-  padding: 8px 12px;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  max-width: 300px;
+  word-wrap: break-word;
+}
+
+/* Hover effects for AI summary */
+.ai-summary-hover {
   cursor: pointer;
-  border-radius: 0 4px 4px 0;
+  transition: all 0.2s ease;
+}
+
+.ai-summary-hover:hover {
+  background: var(--mantine-color-blue-1);
+  transform: scale(1.02);
+}
+
+/* Responsive design improvements */
+@media (max-width: 768px) {
+  .mantine-AppShell-navbar {
+    width: 100% !important;
+  }
+  
+  .mantine-Container-root {
+    padding: 0 16px;
+  }
+  
+  .compact-layout {
+    flex-direction: column;
+    height: auto;
+  }
+  
+  .upload-section {
+    max-width: 100%;
+    margin-bottom: 16px;
+    height: auto;
+  }
+  
+  .content-section {
+    flex: 1;
+    height: auto;
+  }
+  
+  .file-list-container {
+    height: 400px;
+  }
+}
+
+/* Animation for file upload success */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.file-upload-success {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+/* Custom focus states */
+.mantine-TextInput-input:focus,
+.mantine-Button-root:focus,
+.mantine-ActionIcon-root:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Professional color scheme */
+:root {
+  --primary-color: #3b82f6;
+  --secondary-color: #8b5cf6;
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+  --error-color: #ef4444;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --background-primary: #ffffff;
+  --background-secondary: #f8fafc;
+  --border-color: #e2e8f0;
 }

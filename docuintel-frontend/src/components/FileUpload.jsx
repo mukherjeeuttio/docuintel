@@ -2,9 +2,9 @@ import { useCallback, useState } from 'react';
 import * as apiClient from '../services/apiClient';
 
 // --- Mantine Imports ---
-import { Group, Text, rem } from '@mantine/core';
+import { Group, Text, rem, Paper, Badge, Stack } from '@mantine/core';
 import { Dropzone, IMAGE_MIME_TYPE, PDF_MIME_TYPE, MS_WORD_MIME_TYPE } from '@mantine/dropzone';
-import { IconUpload, IconX, IconFileText } from '@tabler/icons-react';
+import { IconUpload, IconX, IconFileText, IconCloudUpload } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 
 const FileUpload = ({ selectedFolderId, onUploadSuccess }) => {
@@ -54,38 +54,73 @@ const FileUpload = ({ selectedFolderId, onUploadSuccess }) => {
       onDrop={handleDrop}
       onReject={(files) => console.log('rejected files', files)}
       maxSize={10 * 1024 ** 2} // 10MB file size limit
-      
       loading={isUploading}
-      style={{ marginBottom: '20px' }}
+      radius="lg"
+      style={{ 
+        border: '2px dashed var(--mantine-color-blue-3)',
+        background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+        transition: 'all 0.3s ease'
+      }}
+      styles={{
+        root: {
+          '&:hover': {
+            borderColor: 'var(--mantine-color-blue-5)',
+            background: 'linear-gradient(135deg, #f1f5f9 0%, #dbeafe 100%)',
+          }
+        }
+      }}
     >
-      <Group justify="center" gap="xl" mih={220} style={{ pointerEvents: 'none' }}>
+      <Group justify="center" gap="md" mih={180} style={{ pointerEvents: 'none' }}>
         <Dropzone.Accept>
-          <IconUpload
-            style={{ width: rem(52), height: rem(52), color: 'var(--mantine-color-blue-6)' }}
-            stroke={1.5}
-          />
+          <Paper p="lg" radius="lg" bg="green.0" withBorder>
+            <Group justify="center" gap="sm">
+              <IconUpload
+                style={{ width: rem(48), height: rem(48), color: 'var(--mantine-color-green-6)' }}
+                stroke={1.5}
+              />
+              <Text size="md" fw={600} c="green.7">Drop files here</Text>
+            </Group>
+          </Paper>
         </Dropzone.Accept>
         <Dropzone.Reject>
-          <IconX
-            style={{ width: rem(52), height: rem(52), color: 'var(--mantine-color-red-6)' }}
-            stroke={1.5}
-          />
+          <Paper p="lg" radius="lg" bg="red.0" withBorder>
+            <Group justify="center" gap="sm">
+              <IconX
+                style={{ width: rem(48), height: rem(48), color: 'var(--mantine-color-red-6)' }}
+                stroke={1.5}
+              />
+              <Text size="md" fw={600} c="red.7">Invalid file type</Text>
+            </Group>
+          </Paper>
         </Dropzone.Reject>
         <Dropzone.Idle>
-          <IconFileText
-            style={{ width: rem(52), height: rem(52), color: 'var(--mantine-color-dimmed)' }}
-            stroke={1.5}
-          />
+          <Stack align="center" gap="sm">
+            <Paper p="lg" radius="lg" bg="blue.0" withBorder>
+              <Group justify="center" gap="sm">
+                <IconCloudUpload
+                  style={{ width: rem(48), height: rem(48), color: 'var(--mantine-color-blue-6)' }}
+                  stroke={1.5}
+                />
+              </Group>
+            </Paper>
+            
+            <Stack gap="xs" align="center">
+              <Text size="lg" fw={600} c="dark.7" ta="center">
+                Drag and drop files here or click here to upload
+              </Text>
+              <Text size="xs" c="dimmed" ta="center" maw={300}>
+                Upload documents, images, or PDFs. Max 10MB per file.
+              </Text>
+              
+              <Group gap="xs" mt="sm">
+                <Badge variant="light" color="blue" size="xs">PDF</Badge>
+                <Badge variant="light" color="blue" size="xs">DOC</Badge>
+                <Badge variant="light" color="blue" size="xs">Images</Badge>
+                <Badge variant="light" color="blue" size="xs">Text</Badge>
+              </Group>
+            </Stack>
+          </Stack>
         </Dropzone.Idle>
-
-        <div>
-          <Text size="xl" inline>
-            Drag documents here or click to select files
-          </Text>
-          <Text size="sm" c="dimmed" inline mt={7}>
-            Attach as many files as you like, each should not exceed 10MB
-          </Text>
-        </div>
       </Group>
     </Dropzone>
   );
