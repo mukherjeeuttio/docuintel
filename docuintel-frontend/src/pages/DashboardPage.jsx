@@ -146,18 +146,110 @@ const DashboardPage = () => {
     });
   };
   
-  const handleUploadComplete = (wasUploadToSpecificFolder) => {
-    notifications.show({
-      title: 'Upload in Progress',
-      message: 'Your file has been sent to the server and is now being processed by the AI.',
-      color: 'blue',
-      autoClose: 5000,
-    });
+  const handleUploadComplete = (wasUploadToSpecificFolder, uploadedFiles = []) => {
+    if (wasUploadToSpecificFolder) {
+      // Files uploaded directly to a specific folder - no AI processing needed
+      notifications.show({
+        title: 'Upload Successful',
+        message: `${uploadedFiles.length} file(s) uploaded directly to the selected folder.`,
+        color: 'green',
+        autoClose: 3000,
+      });
 
-    // Refresh the page after a delay to ensure new folders are visible
-    setTimeout(() => {
-      window.location.reload();
-    }, 3000); // 3 second delay
+      // Refresh data immediately
+      fetchFiles();
+      fetchAllFolders();
+    } else {
+      // Files uploaded to unassigned area - AI processing will happen
+      notifications.show({
+        title: 'Upload Successful',
+        message: `${uploadedFiles.length} file(s) uploaded successfully. AI is now processing...`,
+        color: 'green',
+        autoClose: 3000,
+      });
+
+      // Refresh data without page reload
+      fetchFiles();
+      fetchAllFolders();
+
+      // Show AI processing notification after a brief delay
+      setTimeout(() => {
+        notifications.show({
+          id: 'ai-processing',
+          title: 'AI Processing',
+          message: 'Your files are being analyzed and categorized. Check back in a few moments to see the results.',
+          color: 'blue',
+          autoClose: false,
+          loading: true,
+        });
+      }, 1000);
+
+      // Check for processing completion and show result
+      setTimeout(() => {
+        checkFileProcessingStatus(uploadedFiles);
+      }, 5000);
+    }
+  };
+
+  const checkFileProcessingStatus = async (uploadedFiles) => {
+    try {
+      // Wait a bit longer for AI processing
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Refresh data to get latest file assignments
+      await fetchFiles();
+      await fetchAllFolders();
+      
+      notifications.hide('ai-processing');
+      
+      // Try to determine where files ended up
+      let assignmentMessage = 'Your files have been analyzed and automatically organized.';
+      
+      if (uploadedFiles.length === 1) {
+        // For single file, try to find where it went
+        try {
+          const allFolders = await apiClient.getFolders();
+          const fileFound = await Promise.all(
+            allFolders.data.map(async folder => {
+              const folderFiles = await apiClient.getFilesByFolder(folder.id);
+              const foundFile = folderFiles.data.find(f => 
+                uploadedFiles.some(uf => uf.fileName === f.fileName)
+              );
+              return foundFile ? { folder: folder.name, file: foundFile } : null;
+            })
+          );
+          
+          const foundAssignment = fileFound.find(f => f !== null);
+          if (foundAssignment) {
+            assignmentMessage = `"${foundAssignment.file.fileName}" has been categorized into the "${foundAssignment.folder}" folder.`;
+          }
+        } catch (error) {
+          console.log('Could not determine file assignment:', error);
+        }
+      }
+      
+      notifications.show({
+        title: 'AI Processing Complete',
+        message: assignmentMessage,
+        color: 'green',
+        autoClose: 6000,
+      });
+      
+    } catch (error) {
+      notifications.hide('ai-processing');
+      notifications.show({
+        title: 'Processing Status Unknown',
+        message: 'Files uploaded but processing status unclear. Please refresh to see updates.',
+        color: 'yellow',
+        autoClose: 3000,
+      });
+    }
+  };
+
+  const handleFileDeleted = () => {
+    // Just refresh the file list without showing upload message
+    fetchFiles();
+    fetchAllFolders(); // Also refresh folders in case file counts changed
   };
 
   return (
@@ -237,11 +329,25 @@ const DashboardPage = () => {
         </Stack>
       </AppShell.Navbar>
 
-      <AppShell.Main>
-        <Container size="xl" p={0}>
-          <Group gap="lg" align="flex-start" style={{ height: 'calc(100vh - 140px)' }}>
-            {/* Upload Section - Compact */}
-            <Paper p="lg" radius="lg" withBorder bg="white" shadow="sm" style={{ flex: 1, maxWidth: '400px', height: 'calc(100vh - 180px)' }}>
+      <AppShell.Main style={{ overflow: 'auto', height: 'calc(100vh - 70px)' }}>
+        <Container size="xl" p="xs" style={{ minHeight: '100%' }}>
+          <Group gap="lg" align="flex-start" style={{ 
+            minHeight: 'calc(100vh - 140px)',
+            flexWrap: 'wrap'
+          }}>
+            {/* Upload Section */}
+            <Paper 
+              p="lg" 
+              radius="lg" 
+              withBorder 
+              bg="white" 
+              shadow="sm" 
+              style={{ 
+                flex: '0 0 400px',
+                minWidth: '300px',
+                maxWidth: '100%'
+              }}
+            >
               <Group mb="md">
                 <IconUpload size={20} color="var(--mantine-color-blue-6)" />
                 <Title order={4}>Upload Documents</Title>
@@ -281,9 +387,20 @@ const DashboardPage = () => {
               </Paper>
             </Paper>
 
-            {/* Content Section - Takes remaining space */}
-            <Paper p="lg" radius="lg" withBorder bg="white" shadow="sm" style={{ flex: 2, height: 'calc(100vh - 180px)' }}>
-              <Group mb="md" justify="space-between" align="center">
+            {/* Content Section */}
+            <Paper 
+              p="lg" 
+              radius="lg" 
+              withBorder 
+              bg="white" 
+              shadow="sm" 
+              style={{ 
+                flex: 1,
+                minWidth: '300px',
+                minHeight: '500px'
+              }}
+            >
+              <Group mb="md" justify="space-between" align="center" wrap="wrap">
                 <Group>
                   <IconFiles size={20} color="var(--mantine-color-blue-6)" />
                   <Title order={4}>
@@ -300,8 +417,12 @@ const DashboardPage = () => {
                 </Badge>
               </Group>
               
-              <div style={{ height: 'calc(100vh - 280px)', overflow: 'auto' }}>
-                <FileList files={activeFiles} onFileDeleted={handleUploadComplete} />
+              <div style={{ 
+                height: 'calc(100vh - 280px)', 
+                minHeight: '400px',
+                overflow: 'auto' 
+              }}>
+                <FileList files={activeFiles} onFileDeleted={handleFileDeleted} />
               </div>
             </Paper>
           </Group>
