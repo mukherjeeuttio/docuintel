@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface FileMetaDataRepository extends JpaRepository<FileMetaData, Long> {
     List<FileMetaData> findByFolderId(Long folderId);
+    List<FileMetaData> findByFolderIsNull();
 } 

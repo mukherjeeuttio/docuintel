@@ -12,6 +12,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/files")
@@ -28,7 +30,7 @@ public class FileController {
     private OrchestrationService orchestrationService;
 
     @PostMapping("/upload")
-    public ResponseEntity<FileMetaData> uploadFile(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<FileMetaData> uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("folderId") Optional<Long> folderId) {
         try {
             String uniqueKey = System.currentTimeMillis() + "_" + file.getOriginalFilename();
 
@@ -45,7 +47,7 @@ public class FileController {
             FileMetaData savedMetadata = metaDataRepository.save(metadata);
 
             // 3. Trigger async AI processing
-            orchestrationService.processAndCategorizeFile(savedMetadata.getId());
+            orchestrationService.processAndCategorizeFile(savedMetadata.getId(), folderId.orElse(null));
 
             return ResponseEntity.ok(savedMetadata);
         } catch (IOException e) {
@@ -74,5 +76,10 @@ public class FileController {
 
         String url = s3Service.generatePresignedUrl(metadata.getS3ObjectKey());
         return ResponseEntity.ok(url);
+    }
+
+    @GetMapping("/unassigned")
+    public List<FileMetaData> getUnassignedFiles() {
+        return metaDataRepository.findByFolderIsNull();
     }
 }

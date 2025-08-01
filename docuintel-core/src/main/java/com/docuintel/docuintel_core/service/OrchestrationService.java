@@ -1,12 +1,12 @@
 package com.docuintel.docuintel_core.service;
 
-import com.docuintel.docuintel_core.dto.ClassifyResponse;
-import com.docuintel.docuintel_core.dto.SummarizeResponse;
+import com.docuintel.docuintel_core.dto.ProcessedResponse;
 import com.docuintel.docuintel_core.dto.TextRequest;
 import com.docuintel.docuintel_core.entity.FileMetaData;
 import com.docuintel.docuintel_core.entity.Folder;
 import com.docuintel.docuintel_core.repository.FileMetaDataRepository;
 import com.docuintel.docuintel_core.repository.FolderRepository;
+import jakarta.annotation.Nullable;
 import org.apache.tika.Tika;
 import org.apache.tika.exception.TikaException;
 import org.slf4j.Logger;
@@ -40,18 +40,20 @@ public class OrchestrationService {
     private final Tika tika = new Tika();
 
     @Async
-    public void processAndCategorizeFile(Long metadataId){
-        FileMetaData metaData = metaDataRepository.findById(metadataId).orElseThrow(() -> new RuntimeException("Orchestration Error: Metadata not found for id: " + metadataId));
+    public void processAndCategorizeFile(Long metadataId, @Nullable Long folderId) {
+        FileMetaData metaData = metaDataRepository.findById(metadataId)
+                .orElseThrow(() -> new RuntimeException("Orchestration Error: Metadata not found for id: " + metadataId));
+
         String fileType = metaData.getFileType();
-
-        if (fileType != null && fileType.startsWith("image/")) {
-            assignToFolder(metaData, "Photos", "Categorized as Image");
-            return;
-        }
-
-        if (fileType != null && fileType.startsWith("video/")) {
-            assignToFolder(metaData, "Videos", "Categorized as Video");
-            return;
+        if (fileType != null) {
+            if (fileType.startsWith("image/")) {
+                assignToFolder(metaData, "Photos", "Categorized as Image");
+                return;
+            }
+            if (fileType.startsWith("video/")) {
+                assignToFolder(metaData, "Videos", "Categorized as Video");
+                return;
+            }
         }
 
         byte[] fileContent = s3Service.downloadFile(metaData.getS3ObjectKey());
@@ -70,21 +72,24 @@ public class OrchestrationService {
             return;
         }
 
-        log.info("Text extracted. Calling AI services for file: {}", metaData.getFileName());
-        Mono<SummarizeResponse> summaryMono = callSummarizeService(extractedText);
-        Mono<ClassifyResponse> classifyMono = callClassifyService(extractedText);
+        log.info("Text extracted. Calling Gemini AI service for file: {}", metaData.getFileName());
+        callProcessDocumentService(extractedText).subscribe(
+                processedResponse -> {
+                    String summary = processedResponse.summary();
+                    String classification = processedResponse.classification();
 
-        Mono.zip(summaryMono, classifyMono).subscribe(
-                tuple -> {
-                    SummarizeResponse summaryResponse = tuple.getT1();
-                    ClassifyResponse classifyResponse = tuple.getT2();
-
-                    String folderName = classifyResponse.classification();
-                    log.info("AI classification for '{}' is '{}'. Assigning to folder.", metaData.getFileName(), folderName);
-
-                    assignToFolder(metaData, folderName, summaryResponse.summary());
+                    if (folderId != null) {
+                        // If a folder was specified, use it.
+                        Folder targetFolder = folderRepository.findById(folderId)
+                                .orElseThrow(() -> new RuntimeException("Target folder not found for id: " + folderId));
+                        assignToFolder(metaData, targetFolder.getName(), summary);
+                    } else {
+                        // If no folder was specified, use the classification from Gemini.
+                        assignToFolder(metaData, classification, summary);
+                    }
                 },
                 error -> {
+                    // This error handling works for the new service call too.
                     log.error("Error during AI service call for file: {}", metaData.getFileName(), error);
                     updateWithError(metaData, "AI service call failed.", "Unclassified");
                 }
@@ -92,7 +97,6 @@ public class OrchestrationService {
     }
 
     private void assignToFolder(FileMetaData metaData, String folderName, String summary) {
-
         Folder folder = folderRepository.findByName(folderName)
                 .orElseGet(() -> folderRepository.save(new Folder(folderName)));
 
@@ -104,26 +108,18 @@ public class OrchestrationService {
         log.info("Successfully assigned file '{}' to folder '{}' with summary.", metaData.getFileName(), folderName);
     }
 
-    private Mono<SummarizeResponse> callSummarizeService(String text) {
-        log.debug("Calling summarization service...");
+    private Mono<ProcessedResponse> callProcessDocumentService(String text) {
+        log.debug("Calling new Gemini document processing service...");
         TextRequest request = new TextRequest(text);
         return webClient.post()
-                .uri("/summarize")
+                .uri("/process-document") // New endpoint URI
                 .bodyValue(request)
                 .retrieve()
-                .bodyToMono(SummarizeResponse.class)
-                .onErrorResume(e -> Mono.just(new SummarizeResponse("Summary not available."))); // Fallback
-    }
-
-    private Mono<ClassifyResponse> callClassifyService(String text) {
-        log.debug("Calling classification service...");
-        TextRequest request = new TextRequest(text);
-        return webClient.post()
-                .uri("/classify")
-                .bodyValue(request)
-                .retrieve()
-                .bodyToMono(ClassifyResponse.class)
-                .onErrorResume(e -> Mono.just(new ClassifyResponse("Unclassified", 0.0))); // Fallback
+                .bodyToMono(ProcessedResponse.class)
+                .onErrorResume(e -> {
+                    log.error("Error connecting to Gemini service: " + e.getMessage());
+                    return Mono.just(new ProcessedResponse("Error: Could not process document.", "Unclassified"));
+                });
     }
 
     private void updateWithError(FileMetaData metadata, String errorMessage, String folderName) {
@@ -131,4 +127,3 @@ public class OrchestrationService {
         assignToFolder(metadata, folderName, "Processing Error: " + errorMessage);
     }
 }
-

@@ -16,3 +16,22 @@
 .file-list th { background-color: #f8f9fa; }
 .file-list button { padding: 5px 10px; border: 1px solid #ced4da; border-radius: 3px; cursor: pointer; background-color: #fff; }
 .file-list button.delete { border-color: #dc3545; color: #dc3545; }
+
+.create-folder-form {
+  display: flex;
+  margin-top: 20px;
+}
+.create-folder-form input {
+  flex-grow: 1;
+  border: 1px solid #ccc;
+  padding: 8px;
+  border-radius: 4px 0 0 4px;
+}
+.create-folder-form button {
+  border: 1px solid #007bff;
+  background-color: #007bff;
+  color: white;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: 0 4px 4px 0;
+}
