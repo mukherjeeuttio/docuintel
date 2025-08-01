@@ -1,0 +1,18 @@
+.dashboard-container { display: flex; }
+.sidebar { width: 250px; height: 100vh; background-color: #e9ecef; padding: 1rem; border-right: 1px solid #dee2e6; }
+.main-content { flex: 1; padding: 2rem; }
+
+.folder-list h3 { margin-top: 0; }
+.folder-list ul { list-style-type: none; padding: 0; }
+.folder-list li { padding: 0.75rem; border-radius: 5px; cursor: pointer; margin-bottom: 5px; }
+.folder-list li:hover { background-color: #ced4da; }
+.folder-list li.selected { background-color: #007bff; color: white; }
+
+.dropzone { border: 2px dashed #adb5bd; border-radius: 5px; padding: 2rem; text-align: center; background-color: #fff; cursor: pointer; margin-bottom: 2rem;}
+.dropzone.active { border-color: #007bff; }
+
+.file-list table { width: 100%; border-collapse: collapse; }
+.file-list th, .file-list td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #dee2e6; }
+.file-list th { background-color: #f8f9fa; }
+.file-list button { padding: 5px 10px; border: 1px solid #ced4da; border-radius: 3px; cursor: pointer; background-color: #fff; }
+.file-list button.delete { border-color: #dc3545; color: #dc3545; }

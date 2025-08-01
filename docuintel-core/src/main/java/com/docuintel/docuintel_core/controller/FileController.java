@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/files")
+@CrossOrigin(origins = {"http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173", "http://127.0.0.1:3000"})
 public class FileController {
 
     @Autowired
@@ -52,14 +53,26 @@ public class FileController {
         }
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteFile(@PathVariable Long id) {
-        return metaDataRepository.findById(id)
-                .map(metadata -> {
-                    s3Service.deleteFile(metadata.getS3ObjectKey());
-                    metaDataRepository.deleteById(id);
-                    return ResponseEntity.ok("File deleted successfully");
-                })
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    @DeleteMapping("/{fileId}")
+    public ResponseEntity<Void> deleteFile(@PathVariable Long fileId) {
+        FileMetaData metadata = metaDataRepository.findById(fileId)
+                .orElseThrow(() -> new RuntimeException("File not found"));
+
+        // Delete from S3 first
+        s3Service.deleteFile(metadata.getS3ObjectKey());
+
+        // Then delete from database
+        metaDataRepository.deleteById(fileId);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{fileId}/view-url")
+    public ResponseEntity<String> getPresignedViewUrl(@PathVariable Long fileId) {
+        FileMetaData metadata = metaDataRepository.findById(fileId)
+                .orElseThrow(() -> new RuntimeException("File not found"));
+
+        String url = s3Service.generatePresignedUrl(metadata.getS3ObjectKey());
+        return ResponseEntity.ok(url);
     }
 }
