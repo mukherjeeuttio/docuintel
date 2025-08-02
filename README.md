@@ -34,14 +34,62 @@ The project is built with a microservices-oriented architecture, consisting of t
 
 ## Getting Started
 
-To get the full DocuIntel application running locally, you'll need to start each of the three services.
+DocuIntel can be run in two ways: using Docker (recommended) or running each service individually.
 
-### Prerequisites
+### Option 1: Quick Start with Docker (Recommended)
+
+The easiest way to get DocuIntel running is with Docker Compose, which will start all three services automatically.
+
+#### Prerequisites
+- Docker and Docker Compose installed
+- An AWS account with S3 bucket configured
+- A Google AI API key
+
+#### Steps
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/mukherjeeuttio/docuintel.git
+   cd docuintel
+   ```
+
+2. **Set up environment variables**:
+   Create a `.env` file in the root directory with the following:
+   ```env
+   # AWS Credentials
+   AWS_ACCESS_KEY_ID=your_aws_access_key
+   AWS_SECRET_ACCESS_KEY=your_aws_secret_key
+   
+   # Google AI API Key
+   GOOGLE_API_KEY=your_google_api_key
+   ```
+
+3. **Start the application**:
+   ```bash
+   docker-compose up --build
+   ```
+
+4. **Access the application**:
+   - Frontend: `http://localhost:3000`
+   - Backend API: `http://localhost:8080`
+   - AI Service: Internal service (not directly accessible)
+
+5. **Stop the application**:
+   ```bash
+   docker-compose down
+   ```
+
+### Option 2: Manual Setup (Development)
+
+To get the full DocuIntel application running locally for development, you'll need to start each of the three services individually.
+
+#### Prerequisites
 
 -   Java 17 or later
 -   Maven
 -   Node.js and npm
 -   Python 3.10 or later
+-   PostgreSQL database
 -   An AWS account with S3 bucket configured
 -   A Google AI API key
 
@@ -84,6 +132,16 @@ To get the full DocuIntel application running locally, you'll need to start each
     npm run dev
     ```
     The frontend will be accessible at `http://localhost:5173`.
+
+## Docker Services
+
+The application includes Docker containerization for easy deployment:
+
+- **Backend**: Containerized Spring Boot application
+- **AI Service**: Containerized Python FastAPI service  
+- **Frontend**: Containerized React application served with Nginx
+
+Each service has its own Dockerfile optimized for production deployment.
 
 ## API Endpoints
 

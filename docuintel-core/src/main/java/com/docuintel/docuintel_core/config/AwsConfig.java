@@ -2,6 +2,7 @@ package com.docuintel.docuintel_core.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 import software.amazon.awssdk.regions.Region;
@@ -13,6 +14,9 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 @Configuration
 public class AwsConfig {
 
+    @Value("${ai.service.url}")
+    private String aiServiceUrl;
+
     @Bean
     public S3Client s3Client() {
         return S3Client.builder()
@@ -23,7 +27,7 @@ public class AwsConfig {
     @Bean
     public WebClient webClient() {
         return WebClient.builder()
-                .baseUrl("http://localhost:8000")
+                .baseUrl(aiServiceUrl)
                 .defaultHeader(HttpHeaders.CONTENT_TYPE,
                         MediaType.APPLICATION_JSON_VALUE)
                 .build();

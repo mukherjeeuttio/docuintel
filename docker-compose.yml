@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+
+  backend:
+
+    build: 
+      context: ./docuintel-core
+
+    container_name: docuintel-core-container
+
+    ports:
+      - "8080:8080"
+      
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+
+    depends_on:
+      - ai-service
+
+  
+  ai-service:
+    
+    build: 
+      context: ./docuintel-ai
+    container_name: docuintel-ai-container
+
+    environment:
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+
+  
+  frontend:
+
+    build:
+      context: ./docuintel-frontend
+
+    container_name: docuintel-frontend-container
+
+    ports:
+      - "3000:80"
+
+    depends_on:
+      - backend
